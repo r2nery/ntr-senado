@@ -16,7 +16,9 @@ url2 = lambda href: "https://www.camara.leg.br/internet/sitaqweb/" + href
 
 try:
     df = pd.read_csv("data.csv")
-    starting_date = df["Data"].iloc[0]
+    df = df.drop_duplicates(subset=["URL_Discurso"])
+    starting_date = df["Data"].iloc[0][-4:]
+    dates = [date for date in dates if date[0][-4:] >= starting_date]
 except:
     df = pd.DataFrame(columns=["Data", "Sessão", "Fase", "URL_Discurso", "Discurso", "Orador", "Hora", "Publicação"])
     df.to_csv("data.csv", index=False)
@@ -33,6 +35,7 @@ for data_inicio, data_fim in dates:
         for page in range(1, num_pages):
             url = gen_url(page, page_size, data_inicio, data_fim)
             response = requests.get(url)
+            response.encoding = 'utf-8'
             soup = BeautifulSoup(response.text, "lxml")
             table = soup.find("table", {"class": "table table-bordered variasColunas"})
             rows = table.find_all("tr", {"class": "even"})
